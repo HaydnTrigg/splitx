@@ -1,4 +1,6 @@
 cachebeta.exe
 cvdump.log.utf8
 out/
+.idea/
+cmake-*/
 
