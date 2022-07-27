@@ -34,5 +34,5 @@ using s64 = int64_t;
 #include "c_cvdump_reader.h"
 #include "c_pe_reader.h"
 #include "c_symbol_list.h"
-#include "c_game_splitter.h"
 #include "c_disassembler.h"
+#include "c_game_splitter.h"

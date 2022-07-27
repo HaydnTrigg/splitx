@@ -14,13 +14,15 @@ int main(int argc, char* argv[])
     c_cvdump_reader cvdump_reader(cvdump_text);
     c_pe_reader pe_reader(exe_data);
     c_pe_address_resolver resolver(pe_reader);
-    c_pe_reloc_finder finder(pe_reader);
 
     cvdump_reader.read_cvdump();
-    finder.read_relocations();
 
+    c_disassembler disassembler;
+    c_pe_reloc_finder finder(pe_reader);
+    finder.read_relocations();
     c_symbol_list symbol_list(cvdump_reader, resolver);
     symbol_list.read_symbols();
+    c_game_splitter game_splitter(disassembler, finder, symbol_list, pe_reader);
 
 //    for (const auto& symbol : symbol_list.get_symbols())
 //    {
