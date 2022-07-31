@@ -28,6 +28,12 @@ s_cvdump_module::s_cvdump_module(
     strncpy(module_library, module_library_ptr, sizeof(module_library));
     module_library[sizeof(module_library)-1] = '\0';
 
+    if (!memcmp(module_name_ptr, "* Linker *", 10))
+    {
+        memcpy(module_name, "_linker_common.obj", 19);
+        return;
+    }
+
     strncpy(module_name, module_name_ptr, sizeof(module_name));
     module_name[sizeof(module_name)-1] = '\0';
 }

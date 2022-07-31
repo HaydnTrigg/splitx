@@ -1,5 +1,19 @@
 #pragma once
 
+#ifndef _WIN32
+extern "C"
+{
+    #include <libgen.h>
+    #include <sys/stat.h>
+}
+#else
+#warning introduce platform specific logic to create directories in c_game_splitter.cpp
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+#include <Zydis/Zydis.h>
+
 extern "C"
 {
     #include "pe_format/dir_import.h"
@@ -16,6 +30,7 @@ extern "C"
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <ctime>
 
 #include <vector>
 

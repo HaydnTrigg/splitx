@@ -23,11 +23,12 @@ public:
 class c_pe_address_resolver final
 {
 private:
+    const IMAGE_OPTIONAL_HEADER_32* optional_header;
     const c_pe_reader& reader;
 
 public:
     u64 get_rva(const s_segmented_address& address) const;
-    u64 get_file_offset(const s_segmented_address& address) const;
+    u64 get_file_offset(u64 rva) const;
 
     ~c_pe_address_resolver();
     c_pe_address_resolver(const c_pe_reader& reader);

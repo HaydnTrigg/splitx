@@ -17,17 +17,30 @@ int main(int argc, char* argv[])
 
     cvdump_reader.read_cvdump();
 
-    c_disassembler disassembler;
     c_pe_reloc_finder finder(pe_reader);
     finder.read_relocations();
     c_symbol_list symbol_list(cvdump_reader, resolver);
     symbol_list.read_symbols();
-    c_game_splitter game_splitter(disassembler, finder, symbol_list, pe_reader);
+    c_disassembler disassembler(symbol_list, pe_reader, finder, resolver);
+    c_game_splitter game_splitter(disassembler, symbol_list, cvdump_reader);
 
-//    for (const auto& symbol : symbol_list.get_symbols())
+//    for (auto& sym : symbol_list.get_symbols())
 //    {
-//        printf("0x%08lx 0x%08x %s\n", symbol.rva, symbol.size, symbol.name);
+//        const u8* raw_data = pe_reader.get_raw_data() + resolver.get_file_offset(sym.rva);
+//
+//        std::vector<u64> relocated_rvas;
+//        finder.get_relocations_in_rva_range(relocated_rvas, sym.rva, sym.size);
+//
+//        for (auto reloc : relocated_rvas)
+//        {
+//            u64 file_offset = resolver.get_file_offset(reloc);
+//            u32 reloc_destination = *(u32*)(pe_reader.get_raw_data() + file_offset);
+//
+//            printf("%s %08lx %08lx %08x\n", sym.name, reloc, file_offset, reloc_destination);
+//        }
 //    }
+
+    game_splitter.split_all_objects(argv[3]);
 
     return EXIT_SUCCESS;
 }

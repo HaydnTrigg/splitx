@@ -64,11 +64,8 @@ c_pe_reader::c_pe_reader(const c_buffer<u8> &pe_data)
 
 u64 c_pe_address_resolver::get_rva(const s_segmented_address &address) const
 {
-    const IMAGE_OPTIONAL_HEADER_32* optional_header =
-        reinterpret_cast<const IMAGE_OPTIONAL_HEADER_32*>(reader.get_optional_header());
     u16 num_sections;
     const IMAGE_SECTION_HEADER* sections = reader.get_section_table(num_sections);
-    assert(optional_header);
 
     if (address.segment < num_sections)
     {
@@ -78,17 +75,9 @@ u64 c_pe_address_resolver::get_rva(const s_segmented_address &address) const
     return UINT64_MAX;
 }
 
-u64 c_pe_address_resolver::get_file_offset(const s_segmented_address &address) const
+u64 c_pe_address_resolver::get_file_offset(u64 rva) const
 {
-    u16 num_sections;
-    const IMAGE_SECTION_HEADER* sections = reader.get_section_table(num_sections);
-
-    if (address.segment < num_sections)
-    {
-        return sections[address.segment].PointerToRawData + address.address;
-    }
-
-    return UINT64_MAX;
+    return rva - optional_header->ImageBase;
 }
 
 c_pe_address_resolver::~c_pe_address_resolver()
@@ -96,7 +85,11 @@ c_pe_address_resolver::~c_pe_address_resolver()
 
 c_pe_address_resolver::c_pe_address_resolver(const c_pe_reader& reader)
     : reader(reader)
-{}
+{
+    optional_header =
+            reinterpret_cast<const IMAGE_OPTIONAL_HEADER_32*>(reader.get_optional_header());
+    assert(optional_header);
+}
 
 void c_pe_reloc_finder::read_relocations()
 {
@@ -104,24 +97,27 @@ void c_pe_reloc_finder::read_relocations()
 
     while (header->size_of_block != 0)
     {
-        size_t num_relocs = (header->size_of_block - sizeof(s_image_base_relocation)) / 2;
-
         if (!header->size_of_block)
         {
             break;
         }
 
-        for (size_t i = 0; i < num_relocs; i++)
+        //printf("block vaddr %08x sizeof block %08x\n", header->virtual_address, header->size_of_block);
+
+        for (size_t i = 0; ; i++)
         {
-            u16 offset = *reinterpret_cast<const u16*>(reloc_data + sizeof(s_image_base_relocation) + (i * 2)) & 0x0fff;
+            const u16 *offset_ptr = reinterpret_cast<const u16*>(
+                reinterpret_cast<const u8*>(header) + sizeof(s_image_base_relocation) + (i * 2));
+            u16 ptr = *offset_ptr & 0x0fff;
 
-            //if (offset >> 12 == offset && i != 0)
-//            if (!offset && i != 0)
-//            {
-//                break;
-//            }
+            //printf("%p %04hx %08lx\n", offset_ptr, ptr, image_base + header->virtual_address + ptr);
 
-            relocated_rvas.push_back(image_base + header->virtual_address + offset);
+            if (!ptr && i != 0)
+            {
+                break;
+            }
+
+            relocated_rvas.push_back(image_base + header->virtual_address + ptr);
         }
 
         header = reinterpret_cast<const s_image_base_relocation*>(

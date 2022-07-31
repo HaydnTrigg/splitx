@@ -3,6 +3,7 @@
 struct s_symbol
 {
     u16 object_index;
+    u16 section_index;
     u64 rva;
     u32 size;
     u32 characteristics;
@@ -12,6 +13,7 @@ struct s_symbol
 
     s_symbol(
         u16 object_index,
+        u16 section_index,
         u64 rva,
         u32 size,
         u32 characteristics,
@@ -30,6 +32,8 @@ public:
     void read_symbols();
 
     const std::vector<s_symbol>& get_symbols() const;
+    void get_symbols_by_object_id(std::vector<const s_symbol*>& symbols_out, u16 object_index) const;
+    const s_symbol* get_symbol(u64 rva, u32* offset = nullptr) const;
 
     ~c_symbol_list();
     c_symbol_list(
